@@ -25,6 +25,7 @@ import { API, apiForCurrency, NFTMetadataOutput, Tx } from "../../api/Ethereum";
 import { digestTokenAccounts, prepareTokenAccounts } from "./modules";
 import { findTokenByAddressInCurrency } from "@ledgerhq/cryptoassets";
 import { encodeNftId } from "../../nft";
+import { getEnv } from "../../env";
 export const getAccountShape: GetAccountShape = async (
   infoInput,
   { blacklistedTokenIds }
@@ -47,11 +48,14 @@ export const getAccountShape: GetAccountShape = async (
       withDelisted: true,
     }).length;
   const outdatedBlacklist = initialAccount?.syncHash !== syncHash;
+  const firstNftSync =
+    getEnv("NFT") && typeof initialAccount?.nfts === "undefined";
   const pullFromBlockHash =
     initialAccount &&
     areAllOperationsLoaded(initialAccount) &&
     mostRecentStableOperation &&
-    !outdatedBlacklist
+    !outdatedBlacklist &&
+    !firstNftSync
       ? mostRecentStableOperation.blockHash
       : undefined;
   const txsP = fetchAllTransactions(api, address, pullFromBlockHash);
